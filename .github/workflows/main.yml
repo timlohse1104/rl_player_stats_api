@@ -1,0 +1,72 @@
+name: Rocket League Player Stats API Continuous Deployment Pipeline
+
+on:
+  push:
+    branches: [master]
+jobs:
+  export_bundled_api_as_zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm ci
+      - run: npm run build
+      - name: Zip dist folder
+        run: |
+          cd /dist
+          tar -czf /tmp/bundled-api.tar.gz .
+          ls
+      - name: Save zip for next job
+        uses: actions/upload-artifact@v2
+        with:
+          name: bundled-api
+          path: /tmp/bundled_api.tar.gz
+  upload_zipped_api_bundle:
+    needs: export_bundled_api_as_zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download zipped bundled api
+        uses: actions/download-artifact@v2
+        with:
+          name: bundled_api
+      - name: Create ssh key
+        run: |
+          mkdir -p ~/.ssh/
+          echo ${{ secrets.KEY }} > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+      - name: Save old api as zip in backup folder
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            DATE=`date '+%d-%m-%y_%H-%M-%S'`
+            BACKUP_FILENAME=rl_player_stats_$DATE.tar.gz
+            cd /home/tilloh/api/rl_player_stats
+            tar -czf /home/tilloh/api/backup/$BACKUP_FILENAME .
+            rm -r /home/tilloh/api/rl_player_stats/*
+      - name: Deploy zipped website via scp
+        uses: horochx/deploy-via-scp@master
+        with:
+          local: bundled_api.tar.gz
+          remote: /home/tilloh/api/rl_player_stats
+          host: ${{ secrets.HOST }}
+          port: ${{ secrets.PORT }}
+          user: ${{ secrets.USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+      - name: Unzip new website version
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/tilloh/api/rl_player_stats
+            tar -zxf bundled_api.tar.gz
+            rm bundled_api.tar.gz
