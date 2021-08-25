@@ -2,7 +2,7 @@ name: Rocket League Player Stats API Continuous Deployment Pipeline
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 jobs:
   export_bundled_api_as_zip:
     runs-on: ubuntu-latest
