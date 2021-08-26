@@ -55,7 +55,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             DATE=`date '+%d-%m-%y_%H-%M-%S'`
-            BACKUP_FILENAME=rl_player_stats_$DATE.tar.gz
+            BACKUP_FILENAME=rl-player-stats_$DATE.tar.gz
             cd /home/tilloh/api/rl_player_stats
             tar -czf /home/tilloh/api/backup/$BACKUP_FILENAME .
             rm -r /home/tilloh/api/rl_player_stats/*
@@ -68,7 +68,7 @@ jobs:
           port: ${{ secrets.PORT }}
           user: ${{ secrets.USER }}
           key: ${{ secrets.PRIVATE_KEY }}
-      - name: Unzip new website version
+      - name: Unzip new api version and install dependencies
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -79,3 +79,32 @@ jobs:
             cd /home/tilloh/api/rl_player_stats
             tar -zxf bundled-api.tar.gz
             rm bundled-api.tar.gz
+            npm ci
+  restart_api:
+    needs: upload_zipped_api_bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stop old pm2 api task 
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            pm2 list
+            pm2 stop main
+            pm2 list
+            pm2 delete main
+            pm2 list
+      - name: Start new pm2 api task 
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            pm2 list
+            pm2 start /home/tilloh/api/rl_player_statsmain.js
+            pm2 list            
