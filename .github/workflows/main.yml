@@ -81,4 +81,4 @@ jobs:
             cd /home/tilloh/api/rl_player_stats
             tar -zxf bundled-api.tar.gz
             rm bundled-api.tar.gz
-            npm ci
+            npm i
