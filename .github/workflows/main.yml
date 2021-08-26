@@ -19,7 +19,7 @@ jobs:
         run: ls
       - name: Zip dist folder
         run: |
-          cd /dist
+          cd dist/
           tar -czf /tmp/bundled-api.tar.gz .
           ls
       - name: Save zip for next job
