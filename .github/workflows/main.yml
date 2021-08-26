@@ -15,6 +15,8 @@ jobs:
         run: npm ci
       - name: Build nestjs project
         run: npm run build
+      - name: Copy package.json into dist
+        run: cp package.json dist/package.json
       - name: Show folder contents
         run: |
           echo "Checked out repository content:"
@@ -68,7 +70,7 @@ jobs:
           port: ${{ secrets.PORT }}
           user: ${{ secrets.USER }}
           key: ${{ secrets.PRIVATE_KEY }}
-      - name: Unzip new api version and install dependencies
+      - name: Unzip new api version
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -79,7 +81,8 @@ jobs:
             cd /home/tilloh/api/rl_player_stats
             tar -zxf bundled-api.tar.gz
             rm bundled-api.tar.gz
-            npm ci
+      - name: Clean install npm dependencies
+        run: npm ci
   restart_api:
     needs: upload_zipped_api_bundle
     runs-on: ubuntu-latest
