@@ -11,10 +11,13 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
+      - name: Clean install npm dependencies
       - run: npm ci
+      - name: Build nestjs project
       - run: npm run build
       - name: Zip dist folder
         run: |
+          ls
           cd /dist
           tar -czf /tmp/bundled-api.tar.gz .
           ls
