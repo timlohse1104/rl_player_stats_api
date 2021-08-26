@@ -42,8 +42,8 @@ jobs:
       - name: Create ssh key
         run: |
           mkdir -p ~/.ssh/
-          echo ${{ secrets.PRIVATE_KEY }} > ~/.ssh/id_rsa
-          sudo chmod 600 ~/.ssh/id_rsa
+          echo ${{ secrets.PRIVATE_KEY }} > ~/.ssh/id_ed25519
+          sudo chmod 600 ~/.ssh/id_ed25519
       - name: Save old api as zip in backup folder
         uses: appleboy/ssh-action@master
         with:
