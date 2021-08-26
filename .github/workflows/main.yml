@@ -16,9 +16,12 @@ jobs:
       - name: Build nestjs project
         run: npm run build
       - name: Show folder contents
-        run: ls
+        run: |
+          echo "Checked out repository content:"
+          ls -al
       - name: Zip dist folder
         run: |
+          echo "Bundled content:"
           cd dist/
           tar -czf /tmp/bundled-api.tar.gz .
           ls
@@ -26,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: bundled-api
-          path: /tmp/bundled_api.tar.gz
+          path: /tmp/bundled-api.tar.gz
   upload_zipped_api_bundle:
     needs: export_bundled_api_as_zip
     runs-on: ubuntu-latest
@@ -35,7 +38,7 @@ jobs:
       - name: Download zipped bundled api
         uses: actions/download-artifact@v2
         with:
-          name: bundled_api
+          name: bundled-api
       - name: Create ssh key
         run: |
           mkdir -p ~/.ssh/
@@ -57,7 +60,7 @@ jobs:
       - name: Deploy zipped website via scp
         uses: horochx/deploy-via-scp@master
         with:
-          local: bundled_api.tar.gz
+          local: bundled-api.tar.gz
           remote: /home/tilloh/api/rl_player_stats
           host: ${{ secrets.HOST }}
           port: ${{ secrets.PORT }}
@@ -72,5 +75,5 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/tilloh/api/rl_player_stats
-            tar -zxf bundled_api.tar.gz
-            rm bundled_api.tar.gz
+            tar -zxf bundled-api.tar.gz
+            rm bundled-api.tar.gz
