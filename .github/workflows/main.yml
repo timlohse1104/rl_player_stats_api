@@ -11,22 +11,12 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - name: Clean install npm dependencies
-        run: npm ci
-      - name: Build nestjs project
-        run: npm run build
-      - name: Copy necessary files into dist
-        run: |
-          cp package.json dist/package.json
-          cp tsconfig.build.json dist/tsconfig.build.json
       - name: Show folder contents
         run: |
           echo "Checked out repository content:"
           ls -al
-      - name: Zip dist folder
+      - name: Zip repository folder
         run: |
-          echo "Bundled content:"
-          cd dist/
           tar -czf /tmp/bundled-api.tar.gz .
           ls
       - name: Save zip for next job
@@ -83,4 +73,14 @@ jobs:
             cd /home/tilloh/api/rl_player_stats
             tar -zxf bundled-api.tar.gz
             rm bundled-api.tar.gz
+      - name: Install dependencies and build nest application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/tilloh/api/rl_player_stats
             npm i
+            npm run build
